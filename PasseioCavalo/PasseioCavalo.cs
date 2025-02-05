@@ -8,7 +8,7 @@ namespace PasseioCavalo
 {
     public class PasseioCavalo
     {
-        public int TamanhoTabuleiro { get; } = 16;
+        public int TamanhoTabuleiro { get; } = 8;
         static int[] movX = { 2, 1, -1, -2, -2, -1, 1, 2 };
         static int[] movY = { 1, 2, 2, 1, -1, -2, -2, -1 };
 
