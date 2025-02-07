@@ -34,12 +34,12 @@ namespace PasseioCavalo
             contador++;
             if (move == TamanhoTabuleiro * TamanhoTabuleiro) return true;
 
-            var movimentosOrdenados = ObterMovimentosOrdenadosComBordas(tab, x, y);
+            var movimentos = ObterMovimentos(tab, x, y);
 
-            foreach (var mov in movimentosOrdenados)
+            foreach (var movimento in movimentos)
             {
-                int novoX = x + movX[mov.Index];
-                int novoY = y + movY[mov.Index];
+                int novoX = x + movX[movimento.Index];
+                int novoY = y + movY[movimento.Index];
                 tab[novoX, novoY] = move;
                 if (ResolverPasseioOtimizado(tab, novoX, novoY, move + 1, ref contador)) return true;
                 tab[novoX, novoY] = -1;
@@ -47,7 +47,7 @@ namespace PasseioCavalo
             return false;
         }
 
-        private List<(int Index, int Possibilidades)> ObterMovimentosOrdenadosComBordas(int[,] tab, int x, int y)
+        private List<(int Index, int Possibilidades)> ObterMovimentos(int[,] tab, int x, int y)
         {
             return Enumerable.Range(0, 8)
                 .Select(i => (Index: i, Possibilidades: ContarPossibilidades(tab, x + movX[i], y + movY[i])))
@@ -55,10 +55,9 @@ namespace PasseioCavalo
                 .OrderBy(m => !EhNaBorda(x + movX[m.Index], y + movY[m.Index]))
                 .ThenBy(m => m.Possibilidades)
                 .ToList();
-
         }
 
-        public int ContarPossibilidades(int[,] tab, int x, int y)
+        private int ContarPossibilidades(int[,] tab, int x, int y)
         {
             if (!MovimentoValido(tab, x, y)) return int.MaxValue;
             int count = 0;
@@ -71,12 +70,12 @@ namespace PasseioCavalo
             return count;
         }
 
-        public bool MovimentoValido(int[,] tab, int x, int y)
+        private bool MovimentoValido(int[,] tab, int x, int y)
         {
             return x >= 0 && y >= 0 && x < TamanhoTabuleiro && y < TamanhoTabuleiro && tab[x, y] == -1;
         }
 
-        public bool EhNaBorda(int x, int y)
+        private bool EhNaBorda(int x, int y)
         {
             return x == 0 || y == 0 || x == TamanhoTabuleiro - 1 || y == TamanhoTabuleiro - 1;
         }
@@ -92,16 +91,19 @@ namespace PasseioCavalo
             }
             return false;
         }
+
         public void ImprimirTabuleiro(int[,] tab)
         {
-            Console.WriteLine("  " + string.Join(" ", Enumerable.Range(0, TamanhoTabuleiro).Select(i => i.ToString("D2"))));
+            Console.WriteLine("\n   " + string.Join("  ", Enumerable.Range(0, TamanhoTabuleiro).Select(i => i.ToString("D2"))));
+            Console.WriteLine("  " + new string('-', TamanhoTabuleiro * 4));
             for (int i = 0; i < TamanhoTabuleiro; i++)
             {
-                Console.Write(i.ToString("D2") + " ");
+                Console.Write(i.ToString("D2") + "|");
                 for (int j = 0; j < TamanhoTabuleiro; j++)
-                    Console.Write($"{tab[i, j],2} ");
-                Console.WriteLine();
+                    Console.Write($"{tab[i, j],3} ");
+                Console.WriteLine("|");
             }
+            Console.WriteLine("  " + new string('-', TamanhoTabuleiro * 4));
         }
     }
 }

@@ -12,24 +12,21 @@ namespace PasseioCavalo
         public void IniciarAplicacao()
         {
             PasseioCavalo passeioCavalo = new PasseioCavalo();
-            int[,] tabuleiro = InicializarTabuleiro(passeioCavalo.TamanhoTabuleiro);
+            int[,] tabuleiro = GerarTabuleiro(passeioCavalo.TamanhoTabuleiro);
 
-            (int startX, int startY) = EscolherPosicaoInicial(passeioCavalo.TamanhoTabuleiro);
-            tabuleiro[startX, startY] = 0;
+            (int inicioX, int inicioY) = EscolherPosicaoInicial(passeioCavalo.TamanhoTabuleiro);
+            tabuleiro[inicioX, inicioY] = 0;
 
             Console.Clear();
             int opcao = Menu();
 
-            if (OpcaoValida(opcao))
-            {
-                Console.Clear();
-                Console.WriteLine("Processando...");
+            Console.Clear();
+            Console.WriteLine("Processando...");
 
-                ExecutarPasseioCavalo(passeioCavalo, tabuleiro, startX, startY, opcao);
-            }
+            ExecutarPasseioCavalo(passeioCavalo, tabuleiro, inicioX, inicioY, opcao);
         }
 
-        private int[,] InicializarTabuleiro(int tamanho)
+        private int[,] GerarTabuleiro(int tamanho)
         {
             int[,] tabuleiro = new int[tamanho, tamanho];
             for (int i = 0; i < tamanho; i++)
@@ -57,25 +54,25 @@ namespace PasseioCavalo
             return valor;
         }
 
-        private void ExecutarPasseioCavalo(PasseioCavalo passeioCavalo, int[,] tabuleiro, int startX, int startY, int opcao)
+        private void ExecutarPasseioCavalo(PasseioCavalo passeioCavalo, int[,] tabuleiro, int inicioX, int inicioY, int opcao)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            var stopwatch = Stopwatch.StartNew();
             int contadorPassos = 0;
-            bool sucesso = opcao == 1 ? passeioCavalo.ResolverPasseio(tabuleiro, startX, startY, 1, ref contadorPassos)
-                                      : passeioCavalo.ResolverPasseioOtimizado(tabuleiro, startX, startY, 1, ref contadorPassos);
+            bool resultado = opcao == 1 ? passeioCavalo.ResolverPasseio(tabuleiro, inicioX, inicioY, 1, ref contadorPassos)
+                                      : passeioCavalo.ResolverPasseioOtimizado(tabuleiro, inicioX, inicioY, 1, ref contadorPassos);
             stopwatch.Stop();
 
             Console.Clear();
             Console.WriteLine("\nTabuleiro final:");
             passeioCavalo.ImprimirTabuleiro(tabuleiro);
-            Console.WriteLine($"Tempo de execução: {stopwatch.ElapsedMilliseconds} ms");
+            Console.WriteLine($"\nTempo de execução: {stopwatch.ElapsedMilliseconds} ms");
             Console.WriteLine($"Quantidade de passos: {contadorPassos}");
-            Console.WriteLine($"Solução: {(passeioCavalo.VerificarFechado(tabuleiro, startX, startY) ? "Fechada" : "Aberta")}");
+            Console.WriteLine($"Solução: {(passeioCavalo.VerificarFechado(tabuleiro, inicioX, inicioY) ? "Fechada" : "Aberta")}");
         }
 
         private int Menu()
         {
-            Console.WriteLine("\nPasseio do Cavalo");
+            Console.WriteLine("Passeio do Cavalo");
             Console.WriteLine("1 - Tentativa e Erro");
             Console.WriteLine("2 - Otimizado");
             int escolha;
