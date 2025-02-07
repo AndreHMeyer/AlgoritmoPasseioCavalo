@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PasseioCavalo
 {
     public class PasseioCavalo
     {
-        public int TamanhoTabuleiro { get; } = 8;
+        public int TamanhoTabuleiro { get; set; } = 8;
         static int[] movX = { 2, 1, -1, -2, -2, -1, 1, 2 };
         static int[] movY = { 1, 2, 2, 1, -1, -2, -2, -1 };
 
@@ -31,81 +29,56 @@ namespace PasseioCavalo
             return false;
         }
 
-        public bool ResolverPasseioOrdenado(int[,] tab, int x, int y, int move, ref int contador)
+        public bool ResolverPasseioOtimizado(int[,] tab, int x, int y, int move, ref int contador)
         {
             contador++;
             if (move == TamanhoTabuleiro * TamanhoTabuleiro) return true;
-            var movimentosPossiveis = ObterMovimentosPossiveis(tab, x, y);
-            foreach (var mov in movimentosPossiveis)
+
+            var movimentosOrdenados = ObterMovimentosOrdenadosComBordas(tab, x, y);
+
+            foreach (var mov in movimentosOrdenados)
             {
-                int novoX = x + movX[mov];
-                int novoY = y + movY[mov];
+                int novoX = x + movX[mov.Index];
+                int novoY = y + movY[mov.Index];
                 tab[novoX, novoY] = move;
-                if (ResolverPasseioOrdenado(tab, novoX, novoY, move + 1, ref contador)) return true;
+                if (ResolverPasseioOtimizado(tab, novoX, novoY, move + 1, ref contador)) return true;
                 tab[novoX, novoY] = -1;
             }
             return false;
         }
-        private List<int> ObterMovimentosPossiveis(int[,] tab, int x, int y)
+
+        private List<(int Index, int Possibilidades)> ObterMovimentosOrdenadosComBordas(int[,] tab, int x, int y)
         {
-            var movimentos = new List<int>();
-            for (int i = 0; i < 8; i++)
-            {
-                int novoX = x + movX[i];
-                int novoY = y + movY[i];
-                if (MovimentoValido(tab, novoX, novoY))
-                {
-                    movimentos.Add(i);
-                }
-            }
-            movimentos.Sort((a, b) => { int possibilidadesA = PossibilidadesFuturas(tab, x + movX[a], y + movY[a]);
-                int possibilidadesB = PossibilidadesFuturas(tab, x + movX[b], y + movY[b]);
-                if (possibilidadesA == possibilidadesB)
-                {
-                    int distanciaA = DistanciaCentro(x + movX[a], y + movY[a]);
-                    int distanciaB = DistanciaCentro(x + movX[b], y + movY[b]);
-                    return distanciaB.CompareTo(distanciaA);
-                }
-                return possibilidadesA.CompareTo(possibilidadesB);
-            });
-            return movimentos;
-        }
-        private int PossibilidadesFuturas(int[,] tab, int x, int y)
-        {
-            int contador = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                int novoX = x + movX[i];
-                int novoY = y + movY[i];
-                if (MovimentoValido(tab, novoX, novoY))
-                {
-                    contador++;
-                }
-            }
-            return contador;
-        }
-        private int DistanciaCentro(int x, int y)
-        {
-            int centro = TamanhoTabuleiro / 2;
-            return Math.Abs(x - centro) + Math.Abs(y - centro);
+            return Enumerable.Range(0, 8)
+                .Select(i => (Index: i, Possibilidades: ContarPossibilidades(tab, x + movX[i], y + movY[i])))
+                .Where(m => MovimentoValido(tab, x + movX[m.Index], y + movY[m.Index]))
+                .OrderBy(m => !EhNaBorda(x + movX[m.Index], y + movY[m.Index]))
+                .ThenBy(m => m.Possibilidades)
+                .ToList();
+
         }
 
         public int ContarPossibilidades(int[,] tab, int x, int y)
         {
             if (!MovimentoValido(tab, x, y)) return int.MaxValue;
-            int contador = 0;
+            int count = 0;
             for (int i = 0; i < 8; i++)
             {
                 int novoX = x + movX[i];
                 int novoY = y + movY[i];
-                if (MovimentoValido(tab, novoX, novoY)) contador++;
+                if (MovimentoValido(tab, novoX, novoY)) count++;
             }
-            return contador;
+            return count;
         }
 
         public bool MovimentoValido(int[,] tab, int x, int y)
         {
             return x >= 0 && y >= 0 && x < TamanhoTabuleiro && y < TamanhoTabuleiro && tab[x, y] == -1;
+        }
+
+        public bool EhNaBorda(int x, int y)
+        {
+            return x == 0 || y == 0 || x == TamanhoTabuleiro - 1 || y == TamanhoTabuleiro - 1;
         }
 
         public bool VerificarFechado(int[,] tab, int startX, int startY)
@@ -119,7 +92,6 @@ namespace PasseioCavalo
             }
             return false;
         }
-
         public void ImprimirTabuleiro(int[,] tab)
         {
             Console.WriteLine("  " + string.Join(" ", Enumerable.Range(0, TamanhoTabuleiro).Select(i => i.ToString("D2"))));
